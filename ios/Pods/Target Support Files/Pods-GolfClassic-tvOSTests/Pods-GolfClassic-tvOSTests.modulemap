@@ -1,0 +1,6 @@
+framework module Pods_GolfClassic_tvOSTests {
+  umbrella header "Pods-GolfClassic-tvOSTests-umbrella.h"
+
+  export *
+  module * { export * }
+}
