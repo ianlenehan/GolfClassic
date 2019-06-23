@@ -7,10 +7,21 @@ import EmojiSelector from "react-native-emoji-selector";
 
 const tournaments = [{ id: 1, name: "Chairman's Classic" }];
 
-const DashboardScreen = () => {
+const DashboardScreen = ({ navigation: { navigate } }) => {
   return (
     <Container>
-      <Card>
+      <View
+        style={{
+          backgroundColor: golfGreen,
+          height: 125,
+          position: "absolute",
+          top: 0,
+          right: 0,
+          left: 0,
+          zIndex: 1
+        }}
+      />
+      <Card flex={1}>
         <View
           style={{
             display: "flex",
@@ -35,25 +46,25 @@ const DashboardScreen = () => {
         <Spacer />
         <View>
           <View style={styles.stat}>
-            <Body>Last Round Played</Body>
+            <Body bold>Last Round Played</Body>
             <Body>10 Days Ago</Body>
           </View>
           <View style={styles.stat}>
-            <Body>Last Round Score</Body>
+            <Body bold>Last Round Score</Body>
             <Body>32 Points</Body>
           </View>
           <View style={styles.stat}>
-            <Body>Highest Score</Body>
+            <Body bold>Highest Score</Body>
             <Body>32 Points</Body>
           </View>
           <View style={styles.stat}>
-            <Body>Lowest Score</Body>
+            <Body bold>Lowest Score</Body>
             <Body>21 Points</Body>
           </View>
         </View>
       </Card>
       <Spacer size={2} />
-      <Card>
+      <Card flex={1}>
         <H3 regular style={{ marginBottom: 10 }}>
           TOURNAMENTS
         </H3>
@@ -65,7 +76,9 @@ const DashboardScreen = () => {
           <Body white>Last Competition: 10 Days Ago</Body>
         </TouchableOpacity>
         <View style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
-          <Button white>CREATE TOURNAMENT</Button>
+          <Button white onPress={() => navigate("NewTournament")}>
+            CREATE TOURNAMENT
+          </Button>
         </View>
       </Card>
     </Container>
@@ -79,7 +92,8 @@ const styles = StyleSheet.create({
   stat: {
     display: "flex",
     flexDirection: "row",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
+    marginBottom: 5
   },
   tournament: {
     width: "100%",

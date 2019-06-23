@@ -4,13 +4,16 @@
   "private": true,
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
-    "test": "jest"
+    "test": "jest",
+    "ios": "open ios/GolfClassic.xcworkspace"
   },
   "dependencies": {
+    "firebase": "^6.2.2",
     "react": "16.8.3",
     "react-native": "0.59.9",
     "react-native-elements": "^1.1.0",
     "react-native-emoji-selector": "^0.1.7",
+    "react-native-firebase": "~5.5.3",
     "react-native-gesture-handler": "^1.3.0",
     "react-native-modal-datetime-picker": "^7.4.2",
     "react-native-typography": "^1.4.1",
