@@ -4,7 +4,8 @@ import {
   Text,
   View,
   TouchableOpacity,
-  TextInput
+  TextInput,
+  ActivityIndicator
 } from "react-native";
 import {
   golfGreen,
@@ -17,7 +18,17 @@ export const Colors = {
   golfGreen: "#008763",
   greyWhiteSmoke: "#F8F8F8",
   greySolitude: "#E9ECEE",
-  greenMineral: "#5a665c"
+  greenMineral: "#5a665c",
+  redBurgundy: "#870024"
+};
+
+export const Loading = ({ size, invert }) => {
+  return (
+    <ActivityIndicator
+      size={size}
+      color={invert ? "white" : Colors.golfGreen}
+    />
+  );
 };
 
 export const H1 = props => {
@@ -105,10 +116,14 @@ export const Container = props => {
 export const Button = props => {
   let primaryColor = golfGreen;
   let secondaryColor = "white";
+  let invert = true;
   if (props.white) {
     primaryColor = "white";
     secondaryColor = golfGreen;
+    invert = false;
   }
+  let onClick = props.onClick;
+  if (props.loading) onClick = null;
 
   return (
     <TouchableOpacity
@@ -122,19 +137,24 @@ export const Button = props => {
         borderWidth: 1,
         ...props.style
       }}
+      onClick={onClick}
       {...props}
     >
-      <Text
-        style={{
-          fontFamily: "Dosis-SemiBold",
-          color: secondaryColor,
-          fontSize: 18,
-          textAlign: "center",
-          ...props.textStyle
-        }}
-      >
-        {props.children}
-      </Text>
+      {props.loading ? (
+        <Loading size="small" invert={invert} />
+      ) : (
+        <Text
+          style={{
+            fontFamily: "Dosis-SemiBold",
+            color: secondaryColor,
+            fontSize: 18,
+            textAlign: "center",
+            ...props.textStyle
+          }}
+        >
+          {props.children}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 };
@@ -250,3 +270,15 @@ export const Input = props => {
     </View>
   );
 };
+
+export const Emoji = ({ symbol, size }) => (
+  <Text
+    className="emoji"
+    role="img"
+    style={{
+      fontSize: size === "large" ? 64 : 34
+    }}
+  >
+    {symbol}
+  </Text>
+);

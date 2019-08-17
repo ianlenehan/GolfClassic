@@ -1,13 +1,52 @@
-import React from "react";
-import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
+import React, { useState, useContext, useEffect } from "react";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Image,
+  ScrollView
+} from "react-native";
 import { Icon } from "react-native-elements";
+import { auth, firestore } from "react-native-firebase";
 import { H1, H3, Body, Button, Card, Container, Spacer, HR } from "../common";
 import { golfGreen, greenMineral, greySolitude } from "../constants/Colours";
 import EmojiSelector from "react-native-emoji-selector";
+import AppContext from "../utils/AppContext";
 
 const tournaments = [{ id: 1, name: "Chairman's Classic" }];
 
 const DashboardScreen = ({ navigation: { navigate } }) => {
+  const { authUser, currentUser } = useContext(AppContext);
+  const [loading, setLoading] = useState(false);
+  const [tournaments, setTournaments] = useState([]);
+  const handleSignOut = async () => {
+    await auth().signOut();
+  };
+
+  useEffect(() => {
+    fetchTournaments();
+  }, []);
+
+  const fetchTournaments = async () => {
+    const tournamentsSnap = await firestore()
+      .collection("tournaments")
+      .get();
+
+    const tournaments = tournamentsSnap.docs.map(t => {
+      return { id: t.id, ...t.data() };
+    });
+    setTournaments(tournaments);
+  };
+
+  const getPlayers = invitees => {
+    return invitees
+      .map(invitee => {
+        return invitee.nickName ? invitee.nickName : invitee;
+      })
+      .join(", ");
+  };
+
   return (
     <Container>
       <View
@@ -21,7 +60,7 @@ const DashboardScreen = ({ navigation: { navigate } }) => {
           zIndex: 1
         }}
       />
-      <Card flex={1}>
+      <Card flex={2}>
         <View
           style={{
             display: "flex",
@@ -31,8 +70,8 @@ const DashboardScreen = ({ navigation: { navigate } }) => {
           }}
         >
           <View>
-            <H1 green>SPUD</H1>
-            <Body>Ian Lenehan</Body>
+            <H1 green>{currentUser.nickName.toUpperCase()}</H1>
+            <Body>{currentUser.fullName}</Body>
           </View>
           <Image
             style={{ width: 50, height: 50 }}
@@ -64,23 +103,39 @@ const DashboardScreen = ({ navigation: { navigate } }) => {
         </View>
       </Card>
       <Spacer size={2} />
-      <Card flex={1}>
+      <Card flex={3}>
         <H3 regular style={{ marginBottom: 10 }}>
           TOURNAMENTS
         </H3>
-        <TouchableOpacity style={styles.tournament}>
-          <H3 white underline>
-            CHAIRMAN'S CLASSIC
-          </H3>
-          <Body white>Spud, Heff, Frosty, Turtle, Will</Body>
-          <Body white>Last Competition: 10 Days Ago</Body>
-        </TouchableOpacity>
-        <View style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
-          <Button white onPress={() => navigate("NewTournament")}>
-            CREATE TOURNAMENT
-          </Button>
-        </View>
+        <ScrollView>
+          {tournaments &&
+            tournaments.length > 0 &&
+            tournaments.map(tournament => {
+              return (
+                <TouchableOpacity
+                  key={tournament.id}
+                  style={styles.tournament}
+                  onPress={() => navigate("TournamentDash", { tournament })}
+                >
+                  <H3 white underline>
+                    {tournament.title.toUpperCase()}
+                  </H3>
+                  <Body white>{getPlayers(tournament.invitees)}</Body>
+                  <Body white>Last Competition: 10 Days Ago</Body>
+                </TouchableOpacity>
+              );
+            })}
+        </ScrollView>
+        <Button
+          white
+          onPress={() =>
+            navigate("NewTournament", { refetch: fetchTournaments })
+          }
+        >
+          CREATE TOURNAMENT
+        </Button>
       </Card>
+      <Button onPress={handleSignOut}>SIGN OUT</Button>
     </Container>
   );
 };
@@ -99,8 +154,22 @@ const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: golfGreen,
     padding: 10,
-    borderRadius: 5
+    borderRadius: 5,
+    marginBottom: 5
   }
 });
 
 export default DashboardScreen;
+
+DashboardScreen.navigationOptions = ({ navigation }) => ({
+  headerRight: (
+    <TouchableOpacity>
+      <Icon
+        name="settings"
+        color="white"
+        containerStyle={{ marginRight: 25 }}
+        onPress={() => navigation.navigate("Settings")}
+      />
+    </TouchableOpacity>
+  )
+});

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   TextInput,
   View,
@@ -11,12 +11,15 @@ import { Button, Container, Card, H1, Input, Spacer } from "../common";
 import { greenMineral, greySolitude } from "../constants/Colours";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { green } from "ansi-colors";
+import AppContext from "../utils/AppContext";
 
-function NewTournamentScreen() {
-  const [invitees, setInvitees] = useState(["ianlenehan@gmail.com"]);
+function NewTournamentScreen({ navigation }) {
+  const [invitees, setInvitees] = useState([]);
   const [emailAddress, setEmailAddress] = useState("");
   const [validationError, setValidationError] = useState(null);
   const [title, setTitle] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { currentUser } = useContext(AppContext);
 
   const handleTitleChange = ({ nativeEvent }) => {
     setTitle(nativeEvent.text);
@@ -46,18 +49,23 @@ function NewTournamentScreen() {
     setInvitees(newInvitees);
   };
 
-  const handleSaveTournament = () => {
-    const db = firestore();
-    db.collection("tournaments")
-      .add({
-        title
-      })
-      .then(function(docRef) {
-        console.log("Document written with ID: ", docRef.id);
-      })
-      .catch(function(error) {
-        console.error("Error adding document: ", error);
+  const handleSaveTournament = async () => {
+    const inviteeList = [...invitees, currentUser];
+    try {
+      setLoading(true);
+      const db = firestore();
+      const tournamentRef = await db.collection("tournaments").add({
+        title,
+        invitees: inviteeList
       });
+      const tournament = await tournamentRef.get();
+      const { refetch } = navigation.state.params;
+      refetch();
+      setLoading(false);
+      navigation.goBack();
+    } catch (error) {
+      console.error("Error creating tournament");
+    }
   };
 
   return (
@@ -96,7 +104,7 @@ function NewTournamentScreen() {
             })}
         </View>
 
-        <Button white onPress={handleSaveTournament}>
+        <Button white loading={loading} onPress={handleSaveTournament}>
           SAVE NEW TOURNAMENT
         </Button>
       </Card>

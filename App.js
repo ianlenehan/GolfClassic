@@ -3,6 +3,8 @@ import firebase from "react-native-firebase";
 import { createBottomTabNavigator, createAppContainer } from "react-navigation";
 import RootNavigator from "./src/navigation/RootNavigator";
 import LoginScreen from "./src/auth/LoginScreen";
+import AppContext from "./src/utils/AppContext";
+import { Loading } from "./src/common";
 
 const MainApp = createAppContainer(RootNavigator);
 
@@ -11,7 +13,9 @@ class App extends Component {
     super();
     this.unsubscriber = null;
     this.state = {
-      user: null
+      authUser: null,
+      currentUser: null,
+      loading: true
     };
   }
 
@@ -19,8 +23,18 @@ class App extends Component {
    * Listen for any auth state changes and update component state
    */
   componentDidMount() {
-    this.unsubscriber = firebase.auth().onAuthStateChanged(user => {
-      this.setState({ user });
+    this.unsubscriber = firebase.auth().onAuthStateChanged(async authUser => {
+      const currentUserSnap = await firebase
+        .firestore()
+        .collection("users")
+        .doc(authUser._user.uid)
+        .get();
+
+      this.setState({
+        authUser,
+        currentUser: currentUserSnap.data(),
+        loading: false
+      });
     });
   }
 
@@ -31,11 +45,16 @@ class App extends Component {
   }
 
   render() {
-    if (!this.state.user) {
+    if (this.state.loading) return <Loading size="large" />;
+    if (!this.state.authUser) {
       return <LoginScreen />;
     }
-
-    return <MainApp />;
+    const { currentUser, authUser } = this.state;
+    return (
+      <AppContext.Provider value={{ authUser, currentUser }}>
+        <MainApp />
+      </AppContext.Provider>
+    );
   }
 }
 
