@@ -1,52 +1,60 @@
-import React, { useState, useContext, useEffect } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  Image,
-  ScrollView
-} from "react-native";
+import React, { useState, useEffect } from "react";
+import { StyleSheet, View, TouchableOpacity, ScrollView } from "react-native";
 import { Icon } from "react-native-elements";
-import { auth, firestore } from "react-native-firebase";
-import { H1, H3, Body, Button, Card, Container, Spacer, HR } from "../common";
-import { golfGreen, greenMineral, greySolitude } from "../constants/Colours";
-import EmojiSelector from "react-native-emoji-selector";
-import AppContext from "../utils/AppContext";
-
-const tournaments = [{ id: 1, name: "Chairman's Classic" }];
+import { firestore } from "react-native-firebase";
+import {
+  H1,
+  H3,
+  Body,
+  Button,
+  Card,
+  Container,
+  Spacer,
+  HR,
+  Emoji
+} from "../common";
+import { golfGreen } from "../constants/Colours";
+import useAppContext from "../hooks/useAppContext";
 
 const DashboardScreen = ({ navigation: { navigate } }) => {
-  const { authUser, currentUser } = useContext(AppContext);
+  const { currentUser } = useAppContext();
   const [loading, setLoading] = useState(false);
   const [tournaments, setTournaments] = useState([]);
-  const handleSignOut = async () => {
-    await auth().signOut();
-  };
 
   useEffect(() => {
     fetchTournaments();
   }, []);
 
   const fetchTournaments = async () => {
-    const tournamentsSnap = await firestore()
-      .collection("tournaments")
-      .get();
+    const db = firestore();
+    let tournamentsRef = db.collection("tournament_player");
+    const query = tournamentsRef.where("userId", "==", currentUser.id);
 
-    const tournaments = tournamentsSnap.docs.map(t => {
-      return { id: t.id, ...t.data() };
-    });
-    setTournaments(tournaments);
+    try {
+      let querySnap = await query.get();
+      let fetchedTournaments = [];
+
+      for (let i = 0; i < querySnap.docs.length; i++) {
+        let tournament = await db
+          .collection("tournaments")
+          .doc(querySnap.docs[i].data().tournamentId)
+          .get();
+        fetchedTournaments.push({ ...tournament.data(), id: tournament.id });
+      }
+      setTournaments(fetchedTournaments);
+    } catch (error) {
+      console.log("Error fetching tournaments", error);
+    }
   };
 
-  const getPlayers = invitees => {
-    return invitees
-      .map(invitee => {
-        return invitee.nickName ? invitee.nickName : invitee;
+  const getPlayers = players => {
+    return Object.keys(players)
+      .map(playerId => {
+        return players[playerId].nickName;
       })
       .join(", ");
   };
-
+  // console.log({ tournaments });
   return (
     <Container>
       <View
@@ -73,32 +81,26 @@ const DashboardScreen = ({ navigation: { navigate } }) => {
             <H1 green>{currentUser.nickName.toUpperCase()}</H1>
             <Body>{currentUser.fullName}</Body>
           </View>
-          <Image
-            style={{ width: 50, height: 50 }}
-            source={{
-              uri:
-                "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/240/apple/198/potato_1f954.png"
-            }}
-          />
+          <Emoji symbol={currentUser.emoji} size="large" />
         </View>
         <HR />
         <Spacer />
         <View>
           <View style={styles.stat}>
             <Body bold>Last Round Played</Body>
-            <Body>10 Days Ago</Body>
+            <Body>{currentUser.lastRoundDate || "N/A"}</Body>
           </View>
           <View style={styles.stat}>
             <Body bold>Last Round Score</Body>
-            <Body>32 Points</Body>
+            <Body>{currentUser.lastRoundScore || "N/A"}</Body>
           </View>
           <View style={styles.stat}>
             <Body bold>Highest Score</Body>
-            <Body>32 Points</Body>
+            <Body>{currentUser.highestScore || "N/A"}</Body>
           </View>
           <View style={styles.stat}>
             <Body bold>Lowest Score</Body>
-            <Body>21 Points</Body>
+            <Body>{currentUser.lowestScoore || "N/A"}</Body>
           </View>
         </View>
       </Card>
@@ -120,8 +122,10 @@ const DashboardScreen = ({ navigation: { navigate } }) => {
                   <H3 white underline>
                     {tournament.title.toUpperCase()}
                   </H3>
-                  <Body white>{getPlayers(tournament.invitees)}</Body>
-                  <Body white>Last Competition: 10 Days Ago</Body>
+                  <Body white>{getPlayers(tournament.players)}</Body>
+                  <Body white>
+                    Last Competition: {tournament.lastCompetitionDate || "N/A"}
+                  </Body>
                 </TouchableOpacity>
               );
             })}
@@ -132,10 +136,18 @@ const DashboardScreen = ({ navigation: { navigate } }) => {
             navigate("NewTournament", { refetch: fetchTournaments })
           }
         >
-          CREATE TOURNAMENT
+          NEW TOURNAMENT
+        </Button>
+
+        <Button
+          white
+          onPress={() =>
+            navigate("FindTournament", { refetch: fetchTournaments })
+          }
+        >
+          JOIN TOURNAMENT
         </Button>
       </Card>
-      <Button onPress={handleSignOut}>SIGN OUT</Button>
     </Container>
   );
 };

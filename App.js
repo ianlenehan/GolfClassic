@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import firebase from "react-native-firebase";
-import { createBottomTabNavigator, createAppContainer } from "react-navigation";
+import { createAppContainer } from "react-navigation";
 import RootNavigator from "./src/navigation/RootNavigator";
 import LoginScreen from "./src/auth/LoginScreen";
 import AppContext from "./src/utils/AppContext";
@@ -9,13 +9,25 @@ import { Loading } from "./src/common";
 const MainApp = createAppContainer(RootNavigator);
 
 class App extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.unsubscriber = null;
     this.state = {
-      authUser: null,
-      currentUser: null,
-      loading: true
+      loading: true,
+      appState: {
+        players: null,
+        authUser: null,
+        currentUser: null,
+        emoji: null,
+        setAppState: (key, value) => {
+          this.setState({
+            appState: {
+              ...this.state.appState,
+              [key]: value
+            }
+          });
+        }
+      }
     };
   }
 
@@ -24,15 +36,26 @@ class App extends Component {
    */
   componentDidMount() {
     this.unsubscriber = firebase.auth().onAuthStateChanged(async authUser => {
-      const currentUserSnap = await firebase
-        .firestore()
-        .collection("users")
-        .doc(authUser._user.uid)
-        .get();
+      let appState = {
+        ...this.state.appState,
+        authUser: null,
+        currentUser: null
+      };
+      if (authUser) {
+        const currentUserSnap = await firebase
+          .firestore()
+          .collection("users")
+          .doc(authUser._user.uid)
+          .get();
 
-      this.setState({
-        authUser,
-        currentUser: currentUserSnap.data(),
+        appState = {
+          ...this.state.appState,
+          authUser,
+          currentUser: { id: currentUserSnap.id, ...currentUserSnap.data() }
+        };
+      }
+      return this.setState({
+        appState,
         loading: false
       });
     });
@@ -46,12 +69,20 @@ class App extends Component {
 
   render() {
     if (this.state.loading) return <Loading size="large" />;
-    if (!this.state.authUser) {
+    if (!this.state.appState.authUser) {
       return <LoginScreen />;
     }
-    const { currentUser, authUser } = this.state;
+    const {
+      currentUser,
+      authUser,
+      players,
+      emoji,
+      setAppState
+    } = this.state.appState;
     return (
-      <AppContext.Provider value={{ authUser, currentUser }}>
+      <AppContext.Provider
+        value={{ authUser, currentUser, players, setAppState, emoji }}
+      >
         <MainApp />
       </AppContext.Provider>
     );

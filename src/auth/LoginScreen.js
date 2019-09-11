@@ -32,6 +32,7 @@ function LoginScreen() {
   } = userValues;
 
   const [authType, setAuthType] = useState("login");
+  const [loading, setLoading] = useState(false);
   const [validationError, setValidationError] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
 
@@ -52,11 +53,14 @@ function LoginScreen() {
       return setErrorMessage("FORE! Email address is invalid!");
     }
     try {
+      setLoading(true);
       await auth().signInWithEmailAndPassword(emailAddress, password);
+      setLoading(false);
     } catch (error) {
       setErrorMessage(
         "FORE! The email address or password you entered is incorrect."
       );
+      setLoading(false);
     }
   };
 
@@ -83,6 +87,7 @@ function LoginScreen() {
   };
 
   const handleSignup = async () => {
+    setLoading(true);
     const isValid = runValidations();
     if (isValid) {
       try {
@@ -91,7 +96,6 @@ function LoginScreen() {
           password
         );
 
-        const createdAt = Firebase.database.ServerValue.TIMESTAMP;
         await firestore()
           .collection("users")
           .doc(authUser.user.uid)
@@ -99,14 +103,16 @@ function LoginScreen() {
             fullName,
             nickName,
             emailAddress,
-            createdAt,
-            updatedAt: createdAt
+            createdAt: new Date(),
+            updatedAt: new Date()
           });
+        setLoading(false);
       } catch (error) {
         setErrorMessage(
           "FORE! There was an error signing you up! Please try again."
         );
         console.error(error);
+        setLoading(false);
       }
     }
   };
@@ -120,7 +126,7 @@ function LoginScreen() {
     <Container solid>
       <Spacer size={6} />
       <H1 white style={{ textAlign: "center" }}>
-        Golf Classic!
+        Par Town!
       </H1>
       <Spacer size={3} />
       <Card flex={1} clear>
@@ -184,7 +190,7 @@ function LoginScreen() {
         ) : (
           <TouchableOpacity onPress={() => changeAuthType("signup")}>
             <Body white style={{ textAlign: "center" }}>
-              No Account? Click here to create one?
+              No Account? Click here to create one.
             </Body>
           </TouchableOpacity>
         )}
@@ -205,9 +211,13 @@ function LoginScreen() {
       </Card>
       <Card clear>
         {authType === "signup" ? (
-          <Button onPress={handleSignup}>SIGN UP</Button>
+          <Button loading={loading} onPress={handleSignup}>
+            SIGN UP
+          </Button>
         ) : (
-          <Button onPress={handleLogin}>LOGIN</Button>
+          <Button loading={loading} onPress={handleLogin}>
+            LOGIN
+          </Button>
         )}
       </Card>
     </Container>

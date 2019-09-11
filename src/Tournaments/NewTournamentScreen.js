@@ -1,70 +1,56 @@
 import React, { useState, useContext } from "react";
-import {
-  TextInput,
-  View,
-  StyleSheet,
-  Text,
-  TouchableOpacity
-} from "react-native";
+import { View, StyleSheet, Text, Clipboard, Alert } from "react-native";
 import { firestore } from "react-native-firebase";
 import { Button, Container, Card, H1, Input, Spacer } from "../common";
 import { greenMineral, greySolitude } from "../constants/Colours";
 import Icon from "react-native-vector-icons/FontAwesome";
-import { green } from "ansi-colors";
 import AppContext from "../utils/AppContext";
 
 function NewTournamentScreen({ navigation }) {
-  const [invitees, setInvitees] = useState([]);
-  const [emailAddress, setEmailAddress] = useState("");
-  const [validationError, setValidationError] = useState(null);
-  const [title, setTitle] = useState("");
+  const [details, setDetails] = useState({
+    title: "",
+    winningReward: "Golden Flag",
+    losingReward: "Red Flag"
+  });
   const [loading, setLoading] = useState(false);
   const { currentUser } = useContext(AppContext);
 
-  const handleTitleChange = ({ nativeEvent }) => {
-    setTitle(nativeEvent.text);
+  const handleChange = (label, text) => {
+    setDetails(details => ({ ...details, [label]: text }));
   };
 
-  const handleEmailAddressChange = ({ nativeEvent }) => {
-    setEmailAddress(nativeEvent.text);
-  };
-
-  function validateEmail(email) {
-    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return re.test(String(email).toLowerCase());
-  }
-
-  const addInvitee = () => {
-    if (validateEmail(emailAddress)) {
-      setValidationError(null);
-      setInvitees([...invitees, emailAddress]);
-      setEmailAddress("");
-    } else {
-      setValidationError("Please provide a valid email address");
-    }
-  };
-
-  const removeInvitee = invitee => {
-    const newInvitees = invitees.filter(i => i !== invitee);
-    setInvitees(newInvitees);
+  const showClipboardAlert = id => {
+    return Alert.alert(
+      "Invite Token",
+      `An invite token (${id}) has been copied to your clipboard! Paste this into a message or email to your friends and they can use it to join your new tournament.`,
+      [{ text: "OK", onPress: () => navigation.goBack() }]
+    );
   };
 
   const handleSaveTournament = async () => {
-    const inviteeList = [...invitees, currentUser];
     try {
       setLoading(true);
       const db = firestore();
-      const tournamentRef = await db.collection("tournaments").add({
-        title,
-        invitees: inviteeList
-      });
-      const tournament = await tournamentRef.get();
+      const tournamentDetails = {
+        ...details,
+        admin: currentUser.fullName,
+        players: { [currentUser.id]: { ...currentUser, admin: true } }
+      };
+      const tournamentRef = await db
+        .collection("tournaments")
+        .add(tournamentDetails);
+      await db
+        .collection("tournament_player")
+        .doc(`${tournamentRef.id}_${currentUser.id}`)
+        .set({ userId: currentUser.id, tournamentId: tournamentRef.id });
+
+      Clipboard.setString(tournamentRef.id);
       const { refetch } = navigation.state.params;
       refetch();
       setLoading(false);
-      navigation.goBack();
+      showClipboardAlert(tournamentRef.id);
     } catch (error) {
-      console.error("Error creating tournament");
+      console.error("Error creating tournament", error);
     }
   };
 
@@ -77,35 +63,26 @@ function NewTournamentScreen({ navigation }) {
           <Input
             label={"Tournament Name"}
             placeholder="Hacker's Classic"
-            onChange={handleTitleChange}
-            value={title}
+            onChangeText={text => handleChange("title", text)}
+            value={details.title}
           />
           <Spacer size={2} />
+          <Text>Optional customisations below:</Text>
+          <Spacer size={2} />
           <Input
-            label={"Invite Players"}
-            placeholder="Enter email address..."
-            onChange={handleEmailAddressChange}
-            value={emailAddress}
-            buttonText="ADD"
-            onButtonPress={addInvitee}
-            error={validationError}
+            label={"Winning Reward"}
+            onChangeText={text => handleChange("winningReward", text)}
+            value={details.winningReward}
           />
-          <Spacer />
-          {invitees.length > 0 &&
-            invitees.map(invitee => {
-              return (
-                <View key={invitee} style={styles.invitee}>
-                  <Text style={styles.inviteeText}>{invitee}</Text>
-                  <TouchableOpacity onPress={() => removeInvitee(invitee)}>
-                    <Icon style={styles.inviteeText} name="times" />
-                  </TouchableOpacity>
-                </View>
-              );
-            })}
+          <Input
+            label={"Losing Reward"}
+            onChangeText={text => handleChange("losingReward", text)}
+            value={details.losingReward}
+          />
         </View>
 
         <Button white loading={loading} onPress={handleSaveTournament}>
-          SAVE NEW TOURNAMENT
+          CREATE TOURNAMENT
         </Button>
       </Card>
     </Container>

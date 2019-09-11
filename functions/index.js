@@ -17,8 +17,8 @@ admin.initializeApp();
 
 exports.sendInvites = functions.firestore
   .document("tournaments/{customerId}")
-  .onWrite((tournament, context) => {
-    const tournamentRecord = tournament.after.data();
+  .onWrite((event, context) => {
+    const tournamentRecord = event.after.data();
 
     // tournamentRecord.invitees.map(invitee => {
     //   const mailOptions = {
@@ -44,3 +44,7 @@ exports.sendInvites = functions.firestore
     console.log("tournament record", tournamentRecord);
     return null;
   });
+
+  exports.updatePlayers = functions.firestore.document("users/{userId}").onUpdate((user, context) => {
+
+  })

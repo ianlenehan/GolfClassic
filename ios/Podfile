@@ -11,6 +11,10 @@ target 'GolfClassic' do
   pod 'Firebase/Firestore', '~> 6.2.0'
   pod 'Firebase/Auth', '~> 6.2.0'
 
+  pod 'RNReanimated', :path => '../node_modules/react-native-reanimated'
+
+  pod 'RNScreens', :path => '../node_modules/react-native-screens'
+
   target 'GolfClassicTests' do
     inherit! :search_paths
     # Pods for testing

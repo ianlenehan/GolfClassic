@@ -122,6 +122,10 @@ export const Button = props => {
     secondaryColor = golfGreen;
     invert = false;
   }
+  if (props.warning) {
+    primaryColor = "white";
+    secondaryColor = "red";
+  }
   let onClick = props.onClick;
   if (props.loading) onClick = null;
 
@@ -129,8 +133,7 @@ export const Button = props => {
     <TouchableOpacity
       style={{
         padding: 10,
-        marginTop: 5,
-        marginBottom: 5,
+        margin: 5,
         borderColor: secondaryColor,
         backgroundColor: primaryColor,
         borderRadius: 5,
@@ -149,6 +152,7 @@ export const Button = props => {
             color: secondaryColor,
             fontSize: 18,
             textAlign: "center",
+            textTransform: "uppercase",
             ...props.textStyle
           }}
         >
@@ -203,7 +207,7 @@ export const HR = props => {
 
 export const Input = props => {
   return (
-    <View>
+    <View style={{ margin: 5 }}>
       {props.label && (
         <Text
           style={{
