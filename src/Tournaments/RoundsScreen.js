@@ -138,7 +138,7 @@ const RoundsScreen = () => {
           horizontal
           contentContainerStyle={{ flexDirection: "column" }}
         >
-          <View style={styles.tableHead}>{renderTableHead()}</View>
+          <View style={styles.tableView}>{renderTableHead()}</View>
           <View style={styles.tableColumn}>{renderData()}</View>
         </ScrollView>
       </View>
@@ -168,7 +168,6 @@ const styles = {
   dateCellView: {
     height: 60,
     width: 60,
-    // backgroundColor: '#fff',
     justifyContent: "center",
     alignItems: "center"
   },
@@ -178,42 +177,7 @@ const styles = {
   loserCellView: {
     backgroundColor: Colors.redBurgundy
   },
-  cell: {
-    justifyContent: "center",
-    textAlign: "center",
-    fontSize: 22
-  },
-  dateCell: {
-    fontWeight: "bold"
-  },
-  playerCell: {
-    alignItems: "center",
-    textAlign: "left",
-    fontSize: 16,
-    fontFamily: "System"
-  },
-  loserCell: {
-    color: "white"
-  },
-  nameCell: {
-    fontWeight: "bold",
-    color: "black"
-  },
-  tableHead: {
-    flexDirection: "row"
-  },
   tableColumn: {
     flexDirection: "column"
-    // marginBottom: 3,
-  },
-  tableRows: {
-    flexDirection: "row"
-    // flex: 5,
-  },
-  pullText: {
-    textAlign: "center",
-    fontSize: 10,
-    color: "grey",
-    marginTop: 10
   }
 };

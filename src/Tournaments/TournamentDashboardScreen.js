@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { View, Clipboard, TouchableOpacity, Alert } from "react-native";
+import { View, Clipboard, Alert, TouchableWithoutFeedback } from "react-native";
+import { Icon } from "react-native-elements";
 import moment from "moment";
 import numeral from "numeral";
 import { firestore } from "react-native-firebase";
@@ -156,28 +157,30 @@ function TournamentDashboardScreen({ navigation }) {
           margin: -10
         }}
       />
-      <View
-        style={{
-          zIndex: 2,
-          display: "flex",
-          alignItems: "flex-end"
-        }}
+      <TouchableWithoutFeedback
+        onPress={() => navigation.navigate("DateFilter")}
       >
-        <TouchableOpacity
-          onPress={() => navigation.navigate("DateFilter")}
+        <View
           style={{
-            padding: 5,
-            borderColor: "white",
-            borderWidth: 1,
-            borderRadius: 5
+            zIndex: 2,
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "center",
+            marginTop: 20,
+            marginBottom: 10
           }}
         >
+          <Icon
+            name="date-range"
+            color="white"
+            containerStyle={{ marginRight: 25 }}
+          />
           <Body white>
-            From: {moment(filterDates.from).format("MMM Do YYYY")}
+            {moment(filterDates.from).format("MMM Do YYYY")} to{" "}
+            {moment(filterDates.to).format("MMM Do YYYY")}
           </Body>
-          <Body white>To: {moment(filterDates.to).format("MMM Do YYYY")}</Body>
-        </TouchableOpacity>
-      </View>
+        </View>
+      </TouchableWithoutFeedback>
       <StatCard title="Current Champion" player={players[currentChampId]} />
       <StatCard title="Red Flag Holder" player={players[currentLoserId]} />
       <StatCard

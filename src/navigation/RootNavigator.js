@@ -1,7 +1,7 @@
 import React from "react";
+import { Image } from "react-native";
 import { createStackNavigator } from "react-navigation-stack";
 import { createBottomTabNavigator } from "react-navigation-tabs";
-import MainTabNavigator from "./MainTabNavigator";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { golfGreen } from "../constants/Colours";
 import DashboardScreen from "../Dashboard/DashboardScreen";
@@ -15,6 +15,15 @@ import PlayersScreen from "../Players/PlayersScreen";
 import SettingsScreen from "../Settings/SettingsScreen";
 import EmojiPickerScreen from "../EmojiPicker/EmojiPickerScreen";
 
+const LogoTitle = () => {
+  return (
+    <Image
+      source={require("../images/ParTownLogoWhite.png")}
+      style={{ width: 80, height: 30 }}
+    />
+  );
+};
+
 const defaultNavigationOptions = {
   headerStyle: {
     backgroundColor: golfGreen,
@@ -25,7 +34,9 @@ const defaultNavigationOptions = {
   headerTintColor: "#fff",
   headerTitleStyle: {
     fontWeight: "bold"
-  }
+  },
+  headerBackTitle: "Dashboard",
+  headerTitle: <LogoTitle />
 };
 
 const TournamentTabNavigator = createBottomTabNavigator(
