@@ -33,7 +33,6 @@ function SettingsScreen({ navigation }) {
   }, [emoji, currentUser]);
 
   updatePlayerSettings = async () => {
-    console.log({ currentUser, userDetails });
     setLoading(true);
     setAppState("currentUser", userDetails);
     try {
@@ -42,10 +41,29 @@ function SettingsScreen({ navigation }) {
         .doc(currentUser.id)
         .set(userDetails);
       setLoading(false);
+      await updateSettingsInTournament(userDetails);
       navigation.goBack();
     } catch (error) {
       console.error(error);
     }
+  };
+
+  updateSettingsInTournament = async userDetails => {
+    const { refetch } = navigation.state.params;
+    const db = firestore();
+
+    const tpSnap = await db
+      .collection("tournament_player")
+      .where("userId", "==", userDetails.id)
+      .get();
+
+    for (let i = 0; i < tpSnap.docs.length; i++) {
+      await db
+        .collection("tournaments")
+        .doc(tpSnap.docs[i].data().tournamentId)
+        .update({ [`players.${userDetails.id}`]: userDetails });
+    }
+    refetch();
   };
 
   handleNameChange = text => {
@@ -90,7 +108,9 @@ function SettingsScreen({ navigation }) {
           </Button>
         </View>
       </Card>
-      <Button onPress={handleSignOut}>SIGN OUT</Button>
+      <Button warning onPress={handleSignOut}>
+        SIGN OUT
+      </Button>
     </Container>
   );
 }

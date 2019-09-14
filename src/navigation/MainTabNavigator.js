@@ -18,7 +18,7 @@ const defaultNavigationOptions = {
   headerTitleStyle: {
     fontWeight: "bold"
   },
-  title: "Golf Classic!"
+  title: "Par Town"
 };
 
 const TournamentsStack = createStackNavigator(

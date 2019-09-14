@@ -8,8 +8,10 @@ import DashboardScreen from "../Dashboard/DashboardScreen";
 import NewTournamentScreen from "../Tournaments/NewTournamentScreen";
 import TournamentDashboardScreen from "../Tournaments/TournamentDashboardScreen";
 import FindTournamentScreen from "../Tournaments/FindTournamentScreen";
+import NewRoundScreen from "../Tournaments/NewRoundScreen";
+import RoundsScreen from "../Tournaments/RoundsScreen";
+import DateFilterScreen from "../Tournaments/DateFilterScreen";
 import PlayersScreen from "../Players/PlayersScreen";
-import ResultsScreen from "../Results/ResultsScreen";
 import SettingsScreen from "../Settings/SettingsScreen";
 import EmojiPickerScreen from "../EmojiPicker/EmojiPickerScreen";
 
@@ -29,6 +31,8 @@ const defaultNavigationOptions = {
 const TournamentTabNavigator = createBottomTabNavigator(
   {
     Stats: TournamentDashboardScreen,
+    NewRound: NewRoundScreen,
+    Rounds: RoundsScreen,
     Players: PlayersScreen
   },
   {
@@ -41,6 +45,10 @@ const TournamentTabNavigator = createBottomTabNavigator(
           iconName = "ios-stats";
         } else if (routeName === "Players") {
           iconName = "ios-contacts";
+        } else if (routeName === "NewRound") {
+          iconName = "ios-add-circle";
+        } else if (routeName === "Rounds") {
+          iconName = "ios-list-box";
         }
 
         // You can return any component that you like here!
@@ -76,7 +84,8 @@ const RootStackNavigator = createStackNavigator(
       screen: MainStackNavigator
     },
     EmojiPicker: EmojiPickerScreen,
-    FindTournament: FindTournamentScreen
+    FindTournament: FindTournamentScreen,
+    DateFilter: DateFilterScreen
   },
   {
     mode: "modal",

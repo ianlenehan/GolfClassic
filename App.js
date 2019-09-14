@@ -15,12 +15,19 @@ class App extends Component {
     this.state = {
       loading: true,
       appState: {
+        tournament: null,
         players: null,
         authUser: null,
         currentUser: null,
         emoji: null,
-        setAppState: (key, value) => {
-          this.setState({
+        roundScores: null,
+        refetch: () => {},
+        filterDates: {
+          from: new Date(new Date().getFullYear(), 7, 1),
+          to: (d = new Date(new Date().getFullYear(), 7, 30))
+        },
+        setAppState: async (key, value) => {
+          await this.setState({
             appState: {
               ...this.state.appState,
               [key]: value
@@ -72,17 +79,9 @@ class App extends Component {
     if (!this.state.appState.authUser) {
       return <LoginScreen />;
     }
-    const {
-      currentUser,
-      authUser,
-      players,
-      emoji,
-      setAppState
-    } = this.state.appState;
+
     return (
-      <AppContext.Provider
-        value={{ authUser, currentUser, players, setAppState, emoji }}
-      >
+      <AppContext.Provider value={this.state.appState}>
         <MainApp />
       </AppContext.Provider>
     );

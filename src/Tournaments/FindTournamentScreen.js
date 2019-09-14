@@ -10,8 +10,6 @@ import {
   Card,
   Container,
   Spacer,
-  HR,
-  Colors,
   Input
 } from "../common";
 
@@ -32,7 +30,6 @@ function FindTournamentScreen({ navigation }) {
     if (tournamentSnap.exists) {
       const tournament = tournamentSnap.data();
       setSearchResult(tournament);
-      console.log(tournament);
     }
   };
 
@@ -63,7 +60,7 @@ function FindTournamentScreen({ navigation }) {
       refetch();
       exitModal();
     } catch (error) {
-      console.log("Error adding you to the tournament", error);
+      console.error("Error adding you to the tournament", error);
     }
   };
 

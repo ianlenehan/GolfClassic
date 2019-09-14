@@ -3,6 +3,7 @@ import {
   StyleSheet,
   Text,
   View,
+  ScrollView,
   TouchableOpacity,
   TextInput,
   ActivityIndicator
@@ -19,7 +20,8 @@ export const Colors = {
   greyWhiteSmoke: "#F8F8F8",
   greySolitude: "#E9ECEE",
   greenMineral: "#5a665c",
-  redBurgundy: "#870024"
+  redBurgundy: "#870024",
+  championGold: "#FFDF00"
 };
 
 export const Loading = ({ size, invert }) => {
@@ -113,6 +115,24 @@ export const Container = props => {
   );
 };
 
+export const ScrollContainer = props => {
+  const backgroundColor = props.solid ? golfGreen : greyWhiteSmoke;
+  return (
+    <ScrollView
+      style={{
+        flexGrow: 1,
+        backgroundColor,
+        display: "flex",
+        padding: 10,
+        paddingBottom: 50,
+        ...props.style
+      }}
+    >
+      {props.children}
+    </ScrollView>
+  );
+};
+
 export const Button = props => {
   let primaryColor = golfGreen;
   let secondaryColor = "white";
@@ -123,8 +143,8 @@ export const Button = props => {
     invert = false;
   }
   if (props.warning) {
-    primaryColor = "white";
-    secondaryColor = "red";
+    primaryColor = Colors.redBurgundy;
+    secondaryColor = "white";
   }
   let onClick = props.onClick;
   if (props.loading) onClick = null;
@@ -275,14 +295,21 @@ export const Input = props => {
   );
 };
 
-export const Emoji = ({ symbol, size }) => (
-  <Text
-    className="emoji"
-    role="img"
-    style={{
-      fontSize: size === "large" ? 64 : 34
-    }}
-  >
-    {symbol}
-  </Text>
-);
+export const Emoji = ({ symbol, size, inactive, ...props }) => {
+  let fontSize = 34; // small
+  if (size === "large") fontSize = 64;
+  if (size === "medium") fontSize = 48;
+  return (
+    <Text
+      className="emoji"
+      role="img"
+      style={{
+        fontSize,
+        opacity: inactive ? 0.2 : 1,
+        ...props.style
+      }}
+    >
+      {symbol}
+    </Text>
+  );
+};

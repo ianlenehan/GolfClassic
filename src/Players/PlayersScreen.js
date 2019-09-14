@@ -4,8 +4,9 @@ import { View } from "react-native";
 import PlayerCard from "./PlayerCard";
 
 function PlayersScreen() {
-  const { players } = useAppContext();
-  console.log(players);
+  const {
+    tournament: { players }
+  } = useAppContext();
   if (!players) return null;
 
   return (

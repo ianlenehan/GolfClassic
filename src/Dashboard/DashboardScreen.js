@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, TouchableOpacity, ScrollView } from "react-native";
+import { StyleSheet, View, ScrollView } from "react-native";
 import { Icon } from "react-native-elements";
 import { firestore } from "react-native-firebase";
+import moment from "moment";
 import {
   H1,
   H3,
@@ -11,18 +12,25 @@ import {
   Container,
   Spacer,
   HR,
-  Emoji
+  Emoji,
+  Loading
 } from "../common";
 import { golfGreen } from "../constants/Colours";
 import useAppContext from "../hooks/useAppContext";
+import {
+  TouchableWithoutFeedback,
+  TouchableOpacity
+} from "react-native-gesture-handler";
 
-const DashboardScreen = ({ navigation: { navigate } }) => {
+const DashboardScreen = ({ navigation }) => {
+  const { navigate } = navigation;
   const { currentUser } = useAppContext();
   const [loading, setLoading] = useState(false);
   const [tournaments, setTournaments] = useState([]);
 
   useEffect(() => {
     fetchTournaments();
+    navigation.setParams({ fetchTournaments });
   }, []);
 
   const fetchTournaments = async () => {
@@ -31,6 +39,7 @@ const DashboardScreen = ({ navigation: { navigate } }) => {
     const query = tournamentsRef.where("userId", "==", currentUser.id);
 
     try {
+      setLoading(true);
       let querySnap = await query.get();
       let fetchedTournaments = [];
 
@@ -42,8 +51,9 @@ const DashboardScreen = ({ navigation: { navigate } }) => {
         fetchedTournaments.push({ ...tournament.data(), id: tournament.id });
       }
       setTournaments(fetchedTournaments);
+      setLoading(false);
     } catch (error) {
-      console.log("Error fetching tournaments", error);
+      console.error("Error fetching tournaments", error);
     }
   };
 
@@ -54,7 +64,6 @@ const DashboardScreen = ({ navigation: { navigate } }) => {
       })
       .join(", ");
   };
-  // console.log({ tournaments });
   return (
     <Container>
       <View
@@ -88,7 +97,13 @@ const DashboardScreen = ({ navigation: { navigate } }) => {
         <View>
           <View style={styles.stat}>
             <Body bold>Last Round Played</Body>
-            <Body>{currentUser.lastRoundDate || "N/A"}</Body>
+            <Body>
+              {(currentUser.lastRoundDate &&
+                moment(currentUser.lastRoundDate.toDate())
+                  .local()
+                  .from(moment())) ||
+                "N/A"}
+            </Body>
           </View>
           <View style={styles.stat}>
             <Body bold>Last Round Score</Body>
@@ -100,7 +115,7 @@ const DashboardScreen = ({ navigation: { navigate } }) => {
           </View>
           <View style={styles.stat}>
             <Body bold>Lowest Score</Body>
-            <Body>{currentUser.lowestScoore || "N/A"}</Body>
+            <Body>{currentUser.lowestScore || "N/A"}</Body>
           </View>
         </View>
       </Card>
@@ -110,7 +125,10 @@ const DashboardScreen = ({ navigation: { navigate } }) => {
           TOURNAMENTS
         </H3>
         <ScrollView>
-          {tournaments &&
+          {loading ? (
+            <Loading size="large" />
+          ) : (
+            tournaments &&
             tournaments.length > 0 &&
             tournaments.map(tournament => {
               return (
@@ -124,11 +142,17 @@ const DashboardScreen = ({ navigation: { navigate } }) => {
                   </H3>
                   <Body white>{getPlayers(tournament.players)}</Body>
                   <Body white>
-                    Last Competition: {tournament.lastCompetitionDate || "N/A"}
+                    Last Competition:{" "}
+                    {(tournament.lastRoundDate &&
+                      moment(tournament.lastRoundDate.toDate())
+                        .local()
+                        .from(moment())) ||
+                      "N/A"}
                   </Body>
                 </TouchableOpacity>
               );
-            })}
+            })
+          )}
         </ScrollView>
         <Button
           white
@@ -173,15 +197,22 @@ const styles = StyleSheet.create({
 
 export default DashboardScreen;
 
-DashboardScreen.navigationOptions = ({ navigation }) => ({
-  headerRight: (
-    <TouchableOpacity>
-      <Icon
-        name="settings"
-        color="white"
-        containerStyle={{ marginRight: 25 }}
-        onPress={() => navigation.navigate("Settings")}
-      />
-    </TouchableOpacity>
-  )
-});
+DashboardScreen.navigationOptions = ({ navigation }) => {
+  return {
+    headerRight: (
+      <TouchableWithoutFeedback
+        onPress={() =>
+          navigation.navigate("Settings", {
+            refetch: navigation.state.params.fetchTournaments
+          })
+        }
+      >
+        <Icon
+          name="settings"
+          color="white"
+          containerStyle={{ marginRight: 25 }}
+        />
+      </TouchableWithoutFeedback>
+    )
+  };
+};

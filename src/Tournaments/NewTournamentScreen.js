@@ -3,13 +3,12 @@ import { View, StyleSheet, Text, Clipboard, Alert } from "react-native";
 import { firestore } from "react-native-firebase";
 import { Button, Container, Card, H1, Input, Spacer } from "../common";
 import { greenMineral, greySolitude } from "../constants/Colours";
-import Icon from "react-native-vector-icons/FontAwesome";
 import AppContext from "../utils/AppContext";
 
 function NewTournamentScreen({ navigation }) {
   const [details, setDetails] = useState({
     title: "",
-    winningReward: "Golden Flag",
+    winningReward: "Trophy",
     losingReward: "Red Flag"
   });
   const [loading, setLoading] = useState(false);

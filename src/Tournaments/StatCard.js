@@ -1,49 +1,88 @@
 import React, { useState } from "react";
-import {
-  View,
-  StyleSheet,
-  Platform,
-  Text,
-  Image,
-  TouchableWithoutFeedback,
-  ActivityIndicator
-} from "react-native";
-import { Colors, Card } from "../common";
+import { View, StyleSheet, Text, TouchableWithoutFeedback } from "react-native";
+import numeral from "numeral";
+import { Colors, Card, Emoji, Body } from "../common";
+import { greySolitude } from "../constants/Colours";
 
-// const _renderNameAndImage = () => {
-//   if (this.props.data) {
-//     const { data } = this.props
-//     if (this.props.singlePlayer) {
-//       return this._renderSinglePlayer(data)
-//     } else if (data.players && data.players.length === 1) {
-//       return this._renderSinglePlayer(data.players[0])
-//     } else if (this.props.data.players) {
-//       const nickNames = data.players.map((player) => {
-//         return player.nick_name
-//       })
-
-//       return (
-//         <View style={{ alignItems: 'center' }}>
-//           <Text style={styles.subtitle}>{this.props.subtitle || ''}</Text>
-//           {this._renderMostImage()}
-//           <View style={{ alignItems: 'center', flexDirection: 'row', marginTop: 5 }}>
-//             <Text style={styles.nickName}>{nickNames.join(', ')}</Text>
-//             {this._subtitle()}
-//           </View>
-
-//           {this._renderStats()}
-//         </View>
-//       )
-//     }
-//   }
-//   return <ActivityIndicator/>
-// }
-
-function StatCard(props) {
+function StatCard({ title, player, stats, totals, players, number }) {
   const [showingStats, setShowingStats] = useState(false);
+  if (!player && !stats) {
+    return null;
+  }
+
+  let displayName = player && player.nickName;
+
+  if (stats) {
+    const displayNames = stats.map(s => {
+      const p = players[s.playerId];
+      return p.nickName;
+    });
+    displayName = displayNames.join(", ");
+  }
+
+  const renderEmojis = () => {
+    if (player) {
+      return <Emoji symbol={player.emoji} size="large" />;
+    } else if (stats) {
+      const size = stats.length === 1 ? "large" : "medium";
+      return stats.map(s => {
+        const p = players[s.playerId];
+        return <Emoji key={s.playerId} symbol={p.emoji} size={size} />;
+      });
+    }
+    return null;
+  };
+
+  renderStat = (num, isSubStat = false) => {
+    if (player) return null;
+    const number = num || 0;
+    const showAsPercent = title.toLowerCase().includes("averages");
+    const n = showAsPercent ? numeral(number).format("%0") : number;
+    const viewStyle = isSubStat ? styles.greyCircle : styles.circle;
+    const textStyle = [styles.subtitle];
+    if (isSubStat) textStyle.push({ color: Colors.greenMineral });
+    return (
+      <View style={viewStyle}>
+        <Text style={textStyle}>{n}</Text>
+      </View>
+    );
+  };
+
+  renderStatsList = () => {
+    return (
+      <View
+        style={{
+          marginTop: 20,
+          width: "80%",
+          borderTopColor: Colors.greySolitude,
+          borderTopWidth: 1
+        }}
+      >
+        {totals.map(stat => {
+          return (
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginTop: 10,
+                marginLeft: "15%",
+                marginRight: "15%"
+              }}
+              key={stat.playerId}
+            >
+              <Body>{players[stat.playerId].nickName}</Body>
+              {renderStat(stat.num, true)}
+            </View>
+          );
+        })}
+      </View>
+    );
+  };
 
   const onPress = () => {
-    if (props.allData) {
+    if (totals) {
       setShowingStats(!showingStats);
     }
   };
@@ -51,8 +90,23 @@ function StatCard(props) {
   return (
     <Card>
       <TouchableWithoutFeedback onPress={onPress}>
-        <View>
-          <Text style={styles.cardTitle}>{props.title.toUpperCase()}</Text>
+        <View style={{ alignItems: "center" }}>
+          <Text style={styles.cardTitle}>{title.toUpperCase()}</Text>
+          <View style={styles.playerView}>
+            <View style={{ flexDirection: "row" }}>{renderEmojis()}</View>
+
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center"
+              }}
+            >
+              <Body>{displayName}</Body>
+              {renderStat(number)}
+            </View>
+          </View>
+          {showingStats && renderStatsList()}
         </View>
       </TouchableWithoutFeedback>
     </Card>
@@ -90,8 +144,30 @@ const styles = StyleSheet.create({
     fontFamily: "gamja-flower"
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 10,
     color: "white",
     fontWeight: "bold"
+  },
+  circle: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    marginLeft: 10,
+    backgroundColor: Colors.golfGreen,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  greyCircle: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    marginLeft: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.greySolitude
+  },
+  playerView: {
+    display: "flex",
+    alignItems: "center"
   }
 });
